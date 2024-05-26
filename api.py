@@ -43,6 +43,7 @@ def hello_world():
                 font-size: 50px;
                 color: blue;
                 text-align: center;
+
                 
             }
         </style>
@@ -62,7 +63,7 @@ def manage_cars():
     elif request.method == "POST":
         car = request.json
         cur = mysql.connection.cursor()
-        query = "INSERT INTO cars (model, year, color, manufacturer_id) VALUES (%s, %s, %s, %s);"
+        query = "INSERT INTO cars (model, year, color, manufacturer_id) VALUES ( %s, %s);"
         cur.execute(
             query, (car["model"], car["year"], car["color"], car["manufacturer_id"])
         )
