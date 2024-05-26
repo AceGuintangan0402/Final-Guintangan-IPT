@@ -68,3 +68,37 @@ def manage_cars():
         )
         mysql.connection.commit()
         cur.close()
+
+
+@app.route("/cars/<int:id>", methods=["GET", "PUT", "DELETE"])
+@auth.login_required
+def manage_car_by_id(id):
+    if request.method == "GET":
+        cur = mysql.connection.cursor()
+        query = "SELECT * FROM cars WHERE car_id = %s;"
+        cur.execute(query, (id,))
+        data = cur.fetchone()
+        cur.close()
+
+
+    elif request.method == "PUT":
+        car = request.json
+        cur = mysql.connection.cursor()
+        query = "UPDATE cars SET model = %s, year = %s, color = %s, manufacturer_id = %s WHERE car_id = %s;"
+        cur.execute(
+            query, (car["model"], car["year"], car["color"], car["manufacturer_id"], id)
+        )
+        mysql.connection.commit()
+        cur.close()
+
+
+    elif request.method == "DELETE":
+        cur = mysql.connection.cursor()
+        query = "DELETE FROM cars WHERE car_id = %s;"
+        cur.execute(query, (id,))
+        mysql.connection.commit()
+        cur.close()
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
