@@ -48,3 +48,23 @@ def hello_world():
         </style>
     """
     return f"{style} <p>WELCOME TO ACE DATABASE</p>"
+
+@app.route("/cars", methods=["GET", "POST"])
+@auth.login_required
+def manage_cars():
+    if request.method == "GET":
+        cur = mysql.connection.cursor()
+        query = "SELECT * FROM cars;"
+        cur.execute(query)
+        data = cur.fetchall()
+        cur.close()
+
+    elif request.method == "POST":
+        car = request.json
+        cur = mysql.connection.cursor()
+        query = "INSERT INTO cars (model, year, color, manufacturer_id) VALUES (%s, %s, %s, %s);"
+        cur.execute(
+            query, (car["model"], car["year"], car["color"], car["manufacturer_id"])
+        )
+        mysql.connection.commit()
+        cur.close()
