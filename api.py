@@ -43,7 +43,7 @@ def hello_world():
                 font-size: 50px;
                 color: blue;
                 text-align: center;
-
+                
                 
             }
         </style>
@@ -60,15 +60,34 @@ def manage_cars():
         data = cur.fetchall()
         cur.close()
 
+        response_format = request.args.get('format', 'json') 
+        if response_format == 'xml':
+            response = make_response(convert_to_xml(data), 200)
+            response.headers['Content-Type'] = 'application/xml'
+        else:
+            response = make_response(jsonify(data), 200)
+            response.headers['Content-Type'] = 'application/json'
+        return response
+
     elif request.method == "POST":
         car = request.json
         cur = mysql.connection.cursor()
-        query = "INSERT INTO cars (model, year, color, manufacturer_id) VALUES ( %s, %s);"
+        query = "INSERT INTO cars (model, year, color, manufacturer_id) VALUES (%s, %s, %s, %s);"
         cur.execute(
             query, (car["model"], car["year"], car["color"], car["manufacturer_id"])
         )
         mysql.connection.commit()
         cur.close()
+
+        response_data = {"message": "Car added successfully"}
+        response_format = request.args.get('format', 'json')
+        if response_format == 'xml':
+            response = make_response(convert_to_xml(response_data), 201)
+            response.headers['Content-Type'] = 'application/xml'
+        else:
+            response = make_response(jsonify(response_data), 201)
+            response.headers['Content-Type'] = 'application/json'
+        return response
 
 
 @app.route("/cars/<int:id>", methods=["GET", "PUT", "DELETE"])
@@ -81,6 +100,24 @@ def manage_car_by_id(id):
         data = cur.fetchone()
         cur.close()
 
+        response_format = request.args.get('format', 'json')
+        if data:
+            if response_format == 'xml':
+                response = make_response(convert_to_xml(data), 200)
+                response.headers['Content-Type'] = 'application/xml'
+            else:
+                response = make_response(jsonify(data), 200)
+                response.headers['Content-Type'] = 'application/json'
+        else:
+            error_data = {"message": "Car not found"}
+            if response_format == 'xml':
+                response = make_response(convert_to_xml(error_data), 404)
+                response.headers['Content-Type'] = 'application/xml'
+            else:
+                response = make_response(jsonify(error_data), 404)
+                response.headers['Content-Type'] = 'application/json'     
+        return response  
+
 
     elif request.method == "PUT":
         car = request.json
@@ -91,6 +128,15 @@ def manage_car_by_id(id):
         )
         mysql.connection.commit()
         cur.close()
+        response_data = {"message": "Car updated successfully"}
+        response_format = request.args.get('format', 'json')
+        if response_format == 'xml':
+            response = make_response(convert_to_xml(response_data), 200)
+            response.headers['Content-Type'] = 'application/xml'
+        else:
+            response = make_response(jsonify(response_data), 200)
+            response.headers['Content-Type'] = 'application/json'
+        return response    
 
 
     elif request.method == "DELETE":
@@ -99,6 +145,17 @@ def manage_car_by_id(id):
         cur.execute(query, (id,))
         mysql.connection.commit()
         cur.close()
+
+        response_data = {"message": "Car deleted successfully"}
+        response_format = request.args.get('format', 'json')
+        if response_format == 'xml':
+            response = make_response(convert_to_xml(response_data), 200)
+            response.headers['Content-Type'] = 'application/xml'
+        else:
+            response = make_response(jsonify(response_data), 200)
+            response.headers['Content-Type'] = 'application/json'
+        return response
+
 
 
 if __name__ == "__main__":
